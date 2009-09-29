@@ -11,3 +11,6 @@ n2.multicast("m:hihi!")
 step()
 n1.sendmsg(n2,"ping:hi")
 step()
+n1.ismaster=True
+n3=sim.Node("n3")
+step()
