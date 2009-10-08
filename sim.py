@@ -43,6 +43,17 @@ class Node:
 		for host in self.hostlist:
 			str+="%s\n"%host
 		self.multicast(str)
+	def rebalance(self):
+		print "delegation:"
+		deleg=[0]*(len(hostlist)+1)
+		for n in xrange(len(hostlist)):
+			deleg[n]=[]
+			temppos=n
+			while temppos < LENSPACE:
+				deleg[n].append(temppos)
+				temppos+=LENSPACE/len(hostlist)
+			print "%s:%s"%(hostlist[n],deleg[n])
+
 	def act(self):
 		if self.online:
 			try:
