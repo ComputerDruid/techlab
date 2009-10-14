@@ -1,0 +1,23 @@
+
+Literature Review 1 1st Quarter 2009
+NAME _Dan Johnson_ , Per _3_
+
+COMPUTER SYSTEMS RESEARCH
+Fall/Spring 2009 - 2010
+Background Literature Review for your project
+
+Find an interesting project paper in your research area of interest.  A good source  is: http://portal.acm.org also http://arXiv.org from Cornell University search the Digital Library for a pdf of the paper. I can print the acm papers for you.  The Cornell papers are viewable by you.
+
+1. Title: BIND 9 DNS Cache Poisoning
+
+2. Abstract - describe in several sentences or detailed bullets the focus and goal of this research paper/project.
+
+The paper shows that BIND 9 DNS queries are predictable - i.e. that the source UDP port and DNS transaction ID can be effectively predicted. A predictability algorithm is described that, in optimal conditions, provides very few guesses for the "next" query (10 in the basic attack, and 1 in the advanced attack), thereby overcoming whatever protection offered by the transaction ID mechanism. This enables a much more effective DNS cache poisoning than the currently known attacks against BIND 9. The net effect is that pharming attacks are feasible against BIND 9 caching DNS servers, without the need to directly attack neither DNS servers nor clients (PCs). The results are applicable to all BIND 9 releases, when BIND (the named daemon) is in caching DNS server configuration.
+
+3. What is the analysis being done, how is the project tested and evaluated? What are the conclusions/results? Are there areas for continued research? (if this can be determined)
+
+Analysis was done on the Pseudo-Random Number Generator (PRNG) of the BING 9 caching nameserver that allows an attack on the results of the nameserver. This compromises security by returning incorrect IPs for well-known domains, essentially stealing traffic away from those webservers.
+
+4.  If applicable, describe briefly how you can incorporate or reference any of this project, even as background information, in your own project.
+
+My project will implement the DNS protocol, so I must be careful to keep these security considerations in mind with the design of my protocol. In a way, my protocol is not affected, as there is not Source of Authority to try to impersonate, but the basic problem of a poisoned nameserver is a real danger.
