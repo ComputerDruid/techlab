@@ -12,8 +12,14 @@ Several efforts have been made to solve similar problems:
 \item DistributedDNS attempts to surpass the traditional ICANN-based name service, which is too ambitious to succeed.
 \end{itemize}
 My solution with work with the local link only, which will keep speed as fast as or faster than traditional nameservers, provide lookups for all hosts, not just nearby ones, and honor the authority of the root nameservers.
+
+Another important algorithm may be DHT: Distributed Hash Tables. Since DNS records are key-value pairs, this may be perfect.
+\section{Computer Language/Software}
+Python is being used for prototyping and network simulation. Eventual client/server will be written in C++.
 \section{Procedure}
 I will be using python for the initial proof-of-concept simulation and to make sure the protocol will allow for all necessary features. After the simulated nodes can function properly, I will translate the protocol and implementation into C++, a better language for lower-level operating system functions. Eventually, I will implement a NSS (Name Service Switch) module in order to allow a native linux system to take advantage of these features.
+\section{Testing/Analysis}
+The simulation will test the network chatter of the protocol and the redundancy. By systematically removing nodes, it will be able to test how resilent the network is to changing topography.
 \section{Expected Results}
 The benefits of offloading routine and emergency duties from the nameserver has several practical benefits. First, in the event of a nameserver outage, not all systems need to fail. While non-cached entries may not be available, those that have seen high use (google.com, for example) will still be available. This helps to eliminate one instance of a single point of failure. With a sufficient number of hosts, processing queries on the main nameserver can lead to performance issues. By dividing responsability for name lookups among hosts, the speed and scalability of lookups can be improved.
 \end{document}
