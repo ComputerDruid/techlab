@@ -24,6 +24,7 @@ class Node:
 		self.guid=uid
 		self.msgqueue=[]
 		self.rcvhistory=[]
+		self.records={}
 		self.online=True
 		self.link=link
 		self.link.addnode(self)
@@ -53,7 +54,11 @@ class Node:
 				deleg[n].append(temppos)
 				temppos+=LENSPACE/len(hostlist)
 			print "%s:%s"%(hostlist[n],deleg[n])
-
+	def lookup(self, type, record):
+		if record in records:
+			return records[record]
+		else:
+			self.multicast("dig:%s:%s"%(type,record))
 	def act(self):
 		if self.online:
 			try:
@@ -81,6 +86,11 @@ class Node:
 							self.state="joined"
 					else:
 						self.multicast("complain:%s"%self.guid)
+				elif firstpart=="dig":
+					hname = msg[0].split(":")[2]
+					if hname in records:
+						self.sendmsg(msg[1],"ans:%s"%records[hname])
+
 			except IndexError:
 				if self.state=="starting":
 					self.multicast("join:%s"%self.guid)

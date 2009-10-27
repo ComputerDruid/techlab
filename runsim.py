@@ -14,3 +14,10 @@ step()
 n1.ismaster=True
 n3=sim.Node("n3")
 step()
+while True:
+	line=raw_input()
+	try:
+		exec(line)
+	except:
+		print "Error"
+
