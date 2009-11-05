@@ -29,6 +29,7 @@ class Node:
 		self.link=link
 		self.link.addnode(self)
 		self.hostlist=[self.guid]
+		self.dirtylist=False
 		self.state="starting"
 		self.ismaster=False
 		self.lasttime=time()
@@ -72,12 +73,14 @@ class Node:
 					self.sendmsg(msg[1],"pong:%s"%msg[0].split(":")[1])
 				elif firstpart=="join":
 					if self.ismaster:
-						self.hostlist.append(msg[1].guid)
-						self.sendlist()
+						if msg[1].guid not in self.hostlist:
+							self.hostlist.append(msg[1].guid)
+							self.dirtylist = True
 				elif firstpart=="complain":
 					if self.ismaster:
-						self.hostlist.append(msg[1].guid)
-						self.sendlist()
+						if msg[1].guid not in self.hostlist:
+							self.hostlist.append(msg[1].guid)
+							self.sendlist()
 				elif firstpart=="list":
 					newlist=msg[0].split(":")[1].split("\n")[:-1]
 					if self.guid in newlist:
@@ -107,6 +110,11 @@ class Node:
 						self.state="joined"
 					else:
 						return True #keep going until you join
+				if self.state=="joined":
+					if self.ismaster:
+						if self.dirtylist:
+							self.sendlist()
+							self.dirtylist=False
 				return False
 			return True
 		return False
