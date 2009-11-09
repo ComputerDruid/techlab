@@ -1,3 +1,4 @@
+#!/usr/bin/python
 import sim
 from time import sleep
 def step():
