@@ -25,7 +25,11 @@ class Link:
 			for n in self.nodes:
 				if n.act():
 					anything=True
-
+def openucastsocket(port):
+	s = socket(AF_INET, SOCK_DGRAM)
+	s.setblocking(0)
+	s.bind(("",port))
+	return s
 def openmcastsocket(group, port):
     # Import modules used only here
     import string
@@ -82,6 +86,7 @@ class Node:
 		self.records={}
 		self.addressmap={}
 		self.mrecvsocket = openmcastsocket("225.0.0.250", 81234)
+		self.urecvsocket = openucastsocket(91234)
 		self.online=True
 		self.link=link
 		self.link.addnode(self)
@@ -141,6 +146,14 @@ class Node:
 		try:
 			while True:
 				data, sender = self.mrecvsocket.recvfrom(1500)
+				while data[-1:] == '\0': data = data[:-1] # Strip trailing \0's
+				print "sender",sender
+				self.recvmsg(sender[0],data)
+		except error:
+			pass
+		try:
+			while True:
+				data, sender = self.urecvsocket.recvfrom(1024)
 				while data[-1:] == '\0': data = data[:-1] # Strip trailing \0's
 				print "sender",sender
 				self.recvmsg(sender[0],data)
