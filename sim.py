@@ -87,6 +87,7 @@ class Node:
 		self.addressmap={}
 		self.mrecvsocket = openmcastsocket("225.0.0.250", 81234)
 		self.urecvsocket = openucastsocket(91234)
+		self.usendsocket = socket(AF_INET, SOCK_DGRAM)
 		self.online=True
 		self.link=link
 		self.link.addnode(self)
@@ -106,7 +107,8 @@ class Node:
 		if self.online:
 			self.msgqueue.append([msg,sendernode])
 	def sendmsg(self,targetnode,msg):
-		print "sendmsg not implemented"
+		if self.online:
+			self.usendsocket.sendto(msg,(targetnode,91234))
 	def multicast(self,msg):
 		self.link.multicast(self,msg)
 	def sendlist(self):
@@ -147,7 +149,6 @@ class Node:
 			while True:
 				data, sender = self.mrecvsocket.recvfrom(1500)
 				while data[-1:] == '\0': data = data[:-1] # Strip trailing \0's
-				print "sender",sender
 				self.recvmsg(sender[0],data)
 		except error:
 			pass
@@ -155,7 +156,6 @@ class Node:
 			while True:
 				data, sender = self.urecvsocket.recvfrom(1024)
 				while data[-1:] == '\0': data = data[:-1] # Strip trailing \0's
-				print "sender",sender
 				self.recvmsg(sender[0],data)
 		except error:
 			pass
@@ -198,9 +198,16 @@ class Node:
 					else:
 						self.multicast("complain:%s"%self.guid)
 				elif firstpart=="dig":
-					hname = text.split(":")[2]
-					if hname in records:
-						self.sendmsg(msg[1],"ans:%s"%records[hname])
+					hname = text.split(":")[1]
+					print "records:",self.records
+					if hname in self.records:
+						print "sending answer to %s"%msg[1]
+						self.sendmsg(msg[1],"ans:%s:%s"%(hname,self.records[hname]))
+				elif firstpart=="ans":
+					hname = text.split(":")[1]
+					result = text.split(":")[2]
+					if not hname in self.records:
+						self.records[hname]=result
 
 			except IndexError:
 				if self.state=="starting":
