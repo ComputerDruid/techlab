@@ -81,6 +81,7 @@ def getslot(record):
 class Node:
 	def __init__(self,uid,link=local):
 		self.guid=uid
+		self.guid=getfqdn()
 		self.msgqueue=[]
 		self.rcvhistory=[]
 		self.records={}
@@ -91,7 +92,7 @@ class Node:
 		self.online=True
 		self.link=link
 		self.link.addnode(self)
-		self.hostlist=[self.guid]
+		self.hostlist={}
 		self.dirtylist=False
 		self.state="starting"
 		self.ismaster=False
@@ -114,7 +115,7 @@ class Node:
 	def sendlist(self):
 		str="list:"
 		for host in self.hostlist:
-			str+="%s\n"%host
+			str+="%s,%s\n"%(host,self.hostlist[host])
 		self.multicast(str)
 	def rebalance(self):
 		print "delegation:"
@@ -171,9 +172,9 @@ class Node:
 					sender=msg[1]
 				self.rcvhistory.append(msg)
 				try:
-					print "#%s got a msg from %s: %s"%(self.guid,sender,text)
+					print "%s got a msg from %s: %s"%(self.guid,sender,text)
 				except AttributeError:
-					print "#%s got an anon msg: %s"%(self.guid,text)
+					print "%s got an anon msg: %s"%(self.guid,text)
 				firstpart=text.split(":")[0]
 				if firstpart=="m":
 					print "===== %s says %s ====="%(sender,text.split(":")[1])
@@ -181,18 +182,23 @@ class Node:
 					self.sendmsg(sender,"pong:%s"%text.split(":")[1])
 				elif firstpart=="join":
 					if self.ismaster:
-						if sender not in self.hostlist:
-							self.hostlist.append(sender)
+						secondpart=text.split(":")[1]
+						if secondpart not in self.hostlist:
+							self.hostlist[secondpart]=sender
 							self.dirtylist = True
 				elif firstpart=="complain":
 					if self.ismaster:
-						if sender not in self.hostlist:
-							self.hostlist.append(sender)
-							self.sendlist()
+						secondpart=text.split(":")[1]
+						if secondpart not in self.hostlist:
+							self.hostlist[secondpart]=sender
+							self.dirtylist = True
 				elif firstpart=="list":
-					newlist=text.split(":")[1].split("\n")[:-1]
+					newlistpairs=text.split(":")[1].split("\n")[:-1]
+					newlist={}
+					for pair in newlistpairs:
+						newlist[pair.split(",")[0]]=pair.split(",")[1]
 					if self.guid in newlist:
-						list=newlist
+						self.hostlist=newlist
 						if self.state=="joining":
 							self.state="joined"
 					else:

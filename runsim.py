@@ -1,10 +1,11 @@
 #!/usr/bin/python
 import sim
+import os
 from time import sleep
 def step():
 	sim.local.actall()
 	sleep(1)
-n1=sim.Node("n1")
+n1=sim.Node(os.uname()[1])
 #n2=sim.Node("n2")
 #n1.sendmsg(n2,"m:hi!")
 #step()
