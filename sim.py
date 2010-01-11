@@ -185,13 +185,13 @@ class Node:
 						secondpart=text.split(":")[1]
 						if secondpart not in self.hostlist:
 							self.hostlist[secondpart]=sender
-							self.dirtylist = True
+						self.dirtylist = True
 				elif firstpart=="complain":
 					if self.ismaster:
 						secondpart=text.split(":")[1]
 						if secondpart not in self.hostlist:
 							self.hostlist[secondpart]=sender
-							self.dirtylist = True
+						self.dirtylist = True
 				elif firstpart=="list":
 					newlistpairs=text.split(":")[1].split("\n")[:-1]
 					newlist={}
