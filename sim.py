@@ -1,5 +1,5 @@
 #!/usr/bin/python
-from time import time
+from time import time,sleep
 from random import shuffle
 from socket import *
 import struct
@@ -85,6 +85,8 @@ class Node:
 		self.msgqueue=[]
 		self.rcvhistory=[]
 		self.records={}
+		self.groups=[]
+		self.groupmembers={}
 		self.addressmap={}
 		self.mrecvsocket = openmcastsocket("225.0.0.250", 81234)
 		self.urecvsocket = openucastsocket(91234)
@@ -101,8 +103,8 @@ class Node:
 	def assignmaps(self):
 		for n in xrange(16**2):
 			val=hex(n)[2:]
-			if val not in addressmap:
-				addressmap[val]=[]
+			if val not in self.addressmap:
+				self.addressmap[val]=[]
 
 	def recvmsg(self,sendernode,msg):
 		if self.online:
@@ -131,20 +133,41 @@ class Node:
 		slot = self.reqlist[0][0]
 		record = self.reqlist[0][1]
 		type = self.reqlist[0][2]
-		if slot in addressmap:
+		#TODO: check to see if theres a lookup in progress, if it has succeeded, timed out, or is still in progress
+		if slot in self.addressmap:
 			#TODO: query the hosts in a random order
-			l=addressmap[slot]
+			l=self.addressmap[slot]
 			shuffle(l)
 			for h in l:
-				pass
-				#TODO do query
+				sendmsg(h,"lookup:%s:A")
+			self.lasttime=time()
+			self.lastquad=self.reqlist[0]
+			while time()<ctime+60:
+				if not (slot,record,type) == (self.reqlist[0][0],self.reqlist[0][1],self.reqlist[0][2]):
+					return
+				sleep(.1)
+			print "failed"
+			#TODO: implement fallback lookup
+				
 	def lookup(self, type, record):
-		if record in records:
-			return records[record]
+		if record in self.records:
+			return self.records[record]
 		else:
 			slot=getslot(record)
-			self.multicast("findgroup:%s"%slot)
-			self.reqlist.append((slot,record,type,time()))
+			self.joingroup(slot)
+			request=(slot,record,type,time())
+			self.reqlist.append(request)
+			while True:
+				if not request in self.reqlist:
+					return self.records[record]
+				sleep(.1)
+				#TODO:timeout
+
+	def joingroup(self, group):
+		if group not in self.groups:
+			self.multicast("joingroup:%s"%group)
+			self.groups.append(group)
+			self.groupmembers[group]=[]
 	def fillqueue(self):
 		try:
 			while True:
@@ -212,8 +235,17 @@ class Node:
 				elif firstpart=="ans":
 					hname = text.split(":")[1]
 					result = text.split(":")[2]
+					type = text.split(":")[3]
 					if not hname in self.records:
 						self.records[hname]=result
+					for quad in self.reqlist:
+						if quad[1]==hname and quad[2]==type:
+							self.reqlist.remove(quad)
+				elif firstpart=="joingroup":
+					group = text.split(":")[1]
+					if group in self.groups:
+						self.sendmsg(sender,"member:%s:%s"%(group,self.guid))
+						self.groupmembers[group].append(sender)
 
 			except IndexError:
 				if self.state=="starting":

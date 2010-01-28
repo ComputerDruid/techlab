@@ -1,31 +1,52 @@
 #!/usr/bin/python
 import sim
 import os
+import threading
 from time import sleep
-def step():
-	sim.local.actall()
-	sleep(.1)
-n1=sim.Node(os.uname()[1])
-#n2=sim.Node("n2")
-#n1.sendmsg(n2,"m:hi!")
-#step()
-#n2.multicast("m:hihi!")
-#step()
-#n1.sendmsg(n2,"ping:hi")
-#step()
-#n1.ismaster=True
-#n3=sim.Node("n3")
-#step()
-#list=[0]*10
-#for n in xrange(10):
-#	list[n]=sim.Node("node%d"%n)
-step()
-while True:
-	step()
-#while True:
-#	line=raw_input()
-#	try:
-#		exec(line)
-#	except:
-#		print "Error"
 
+msgbuffer=[]
+bufferlock=threading.Lock()
+doquit=False
+def run():
+	mybuffer=[]
+	while True:
+		if len(mybuffer)==0:
+			try:
+				bufferlock.acquire()
+				while len(msgbuffer)>0:
+					mybuffer.append(msgbuffer.pop(0))
+			finally:
+				bufferlock.release()
+		if len(mybuffer)>0:
+			msg=mybuffer.pop(0)
+			print "typed:%s"%msg
+			if msg=="list":
+				print "ismaster:%s"%n1.ismaster
+				print "hostlist:%s"%n1.hostlist
+				print "records:%s"%n1.records
+			elif "," in msg:
+				parts=msg.split(",")
+				if parts[0]=="lookup":
+					print "lookup:%s"%n1.lookup("a",parts[1])
+			else:
+				n1.multicast("m:%s"%msg)
+		sim.local.actall()
+		if doquit:
+			return
+		sleep(.1)
+
+n1=sim.Node(os.uname()[1])
+procthread=threading.Thread(name="processing", target=run)
+procthread.start()
+while True:
+	str=""
+	try:
+		str=raw_input()
+	except EOFError:
+		doquit=True
+		break
+	try:
+		bufferlock.acquire()
+		msgbuffer.append(str)
+	finally:
+		bufferlock.release()
