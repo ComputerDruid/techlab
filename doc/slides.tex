@@ -24,10 +24,14 @@ Several efforts have been made to solve similar problems:
 	\item The Avahi project provides name lookups for machines on the local subnet vial a .local pseudo-TLD
 	\item DistributedDNS attempts to surpass the traditional ICANN-based name service, which is too ambitious to succeed.
 	\end{itemize}
+}
+
+\frame{
 	My solution with work with the local link only, which will keep speed as fast as or faster than traditional nameservers, provide lookups for all hosts, not just nearby ones, and honor the authority of the root nameservers.
 
-Another important algorithm may be DHT: Distributed Hash Tables. Since DNS records are key-value pairs, this may be perfect.
+Another important algorithm may be DHT: Distributed Hash Tables. Since DNS records are key-value pairs, this may be perfect. However, DHT seems to work better for larger sized things, it is difficult to determine how it can be used for much smaller things like DNS records.
 }
+
 \section{Tools}
 \frame{
 \frametitle{Computer Language/Software}
@@ -48,6 +52,9 @@ Python is being used for prototyping and network simulation. Eventual client/ser
 	\begin{itemize}
 		\item Client/server development
 		\item Name Service Switch (NSS) module
+		\begin{itemize}
+			\item Possible alternative: Make a intermediate DNS server, similar to a caching one.
+		\end{itemize}
 	\end{itemize}
 \end{itemize}
 }
@@ -63,6 +70,11 @@ Python is being used for prototyping and network simulation. Eventual client/ser
 		\item Degradation of network
 	\end{itemize}
 \end{itemize}
+}
+\frame{
+\frametitle{Example}
+	\includegraphics[height=2in]{snapshot2ndqtr.png} \\
+	An example run of the simulation.
 }
 \section{Results}
 \frame{
