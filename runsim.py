@@ -30,7 +30,7 @@ def run():
 					print "lookup:%s"%n1.lookup("a",parts[1])
 			else:
 				n1.multicast("m:%s"%msg)
-		sim.local.actall()
+		n1.act()
 		if doquit:
 			return
 		sleep(.1)

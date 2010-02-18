@@ -5,26 +5,11 @@ from socket import *
 import struct
 MYGROUP = '225.0.0.250'
 
-class Link:
-	def __init__(self):
-		self.nodes=[]
-		self.msendsocket=socket(AF_INET, SOCK_DGRAM)
-		ttl = struct.pack('b', 1)
-		self.msendsocket.setsockopt(IPPROTO_IP, IP_MULTICAST_TTL, ttl)
-
-	def addnode(self,n):
-		self.nodes.append(n)
-	def multicast(self,sender,msg):
-#		for n in self.nodes:
-#			n.recvmsg(sender,msg)
-		self.msendsocket.sendto(msg, (MYGROUP, 81234))
-	def actall(self):
-		anything=True
-		while anything:
-			anything=False #pessimistic view
-			for n in self.nodes:
-				if n.act():
-					anything=True
+def openmsendsocket():
+	self.msendsocket=socket(AF_INET, SOCK_DGRAM)
+	ttl = struct.pack('b', 1)
+	self.msendsocket.setsockopt(IPPROTO_IP, IP_MULTICAST_TTL, ttl)
+	
 def openucastsocket(port):
 	s = socket(AF_INET, SOCK_DGRAM)
 	s.setblocking(0)
@@ -34,37 +19,38 @@ def openmcastsocket(group, port):
     # Import modules used only here
     import string
     import struct
-    #
-    # Create a socket
+
     s = socket(AF_INET, SOCK_DGRAM)
-    #
+
     # Allow multiple copies of this program on one machine
     # (not strictly needed)
     s.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
-    #
-    # Bind it to the port
+
     s.bind(('', port))
-    #
+
     # Look up multicast group address in name server
     # (doesn't hurt if it is already in ddd.ddd.ddd.ddd format)
     group = gethostbyname(group)
-    #
+
     # Construct binary group address
     bytes = map(int, string.split(group, "."))
     grpaddr = 0
     for byte in bytes: grpaddr = (grpaddr << 8) | byte
-    #
+
     # Construct struct mreq from grpaddr and ifaddr
     ifaddr = INADDR_ANY
     mreq = struct.pack('ll', htonl(grpaddr), htonl(ifaddr))
-    #
+ 
     # Add group membership
     s.setsockopt(IPPROTO_IP, IP_ADD_MEMBERSHIP, mreq)
-    #
+ 
     s.setblocking(0)
     return s
 
-local = Link()
+msendsocket=openmsendsocket()
+def multicast(msg):
+	msendsocket.sendto(msg, (MYGROUP, 81234))
+
 def getslot(record):
 	parts=record.split(".")
 	domain="%s.%s"%(parts[-2],parts[-1])
@@ -79,7 +65,7 @@ def getslot(record):
 	return slot
 
 class Node:
-	def __init__(self,uid,link=local):
+	def __init__(self,uid):
 		self.guid=uid
 		self.guid=getfqdn()
 		self.msgqueue=[]
@@ -92,8 +78,6 @@ class Node:
 		self.urecvsocket = openucastsocket(91234)
 		self.usendsocket = socket(AF_INET, SOCK_DGRAM)
 		self.online=True
-		self.link=link
-		self.link.addnode(self)
 		self.hostlist={}
 		self.dirtylist=False
 		self.state="starting"
@@ -113,7 +97,7 @@ class Node:
 		if self.online:
 			self.usendsocket.sendto(msg,(targetnode,91234))
 	def multicast(self,msg):
-		self.link.multicast(self,msg)
+		multicast(msg)
 	def sendlist(self):
 		str="list:"
 		for host in self.hostlist:
